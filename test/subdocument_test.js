@@ -31,4 +31,23 @@ describe('Subdocuments', () => {
         done();
       });
   });
-});
+
+  it('can remove an existing subdocument', done => {
+    const user = new User({
+      name: 'Joe',
+      posts: [{ title: 'New Title'}]
+    });
+
+    user.save()
+      .then(() => User.findOne({ name: 'Joe' }))
+      .then(foundUser => {
+        foundUser.posts[0].remove();
+        return foundUser.save();
+      })
+      .then(() => User.findOne({ name: 'Joe' }))
+      .then(foundUser => {
+        assert(foundUser.posts.length === 0);
+        done();
+      });
+  });
+}); 
