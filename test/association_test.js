@@ -20,11 +20,34 @@ describe('Associations', () => {
       .then(() => done());
   });
 
-  it.only('saves a relation between a user and a blogpost', done => {
+  it('saves a relation between a user and a blogpost', done => {
     User.findOne({ name: 'Joe' })
+      .populate('blogPosts')
       .then(foundUser => {
-        console.log(foundUser);
+        assert(user.blogPosts[0].title === 'Javascript')
         done();
       });
   });
-})
+
+  it('saves a full relation graph', done => {
+    User.findOne({ name: 'Joe' })
+      .populate({
+        path: 'blogPosts',
+        populate: {
+          path: 'comments',
+          model: 'comment',
+          populate: {
+            path: 'user',
+            model: 'user'
+          }
+        }
+      })
+      .then(foundUser => {
+        assert(foundUser.name === 'Joe');
+        assert(foundUser.blogPosts[0].title === 'Javascript');
+        assert(foundUser.blogPosts[0].comments[0].content === 'Yeah I agree on that.');
+        assert(foundUser.blogPosts[0].comments[0].user.name === 'Joe');
+        done();
+      });
+  });
+});
